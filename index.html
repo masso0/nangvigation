@@ -60,7 +60,7 @@
   .door{
     position:absolute;left:0;right:0;
     background:linear-gradient(160deg,#eef3fa,#c3cee0);
-    transform-origin:left center;transition:transform 1.0s cubic-bezier(.6,.02,.2,1);
+    transform-origin:right center;transition:transform 1.0s cubic-bezier(.6,.02,.2,1);
     box-shadow:inset 0 2px 6px rgba(255,255,255,.7), 0 8px 22px rgba(0,0,0,.22);
     backface-visibility:hidden;z-index:3;
   }
@@ -74,18 +74,17 @@
   /* shadow seam between fridge and freezer compartments */
   .seam{position:absolute;left:8px;right:8px;top:calc(38% + 8px);height:6px;z-index:2;pointer-events:none;
     background:linear-gradient(180deg,rgba(0,0,0,.30),rgba(0,0,0,0));border-radius:4px}
-  .fridge:not(.diving):hover .door{box-shadow:inset 0 2px 6px rgba(255,255,255,.7), 16px 10px 36px rgba(0,0,0,.38)}
-  .fridge:not(.diving):hover .doorTop{transform:rotateY(-13deg)}
-  .fridge:not(.diving):hover .doorBottom{transform:rotateY(-9deg)}
+  .fridge:not(.diving):hover .door{box-shadow:inset 0 2px 6px rgba(255,255,255,.7), -16px 10px 36px rgba(0,0,0,.38)}
+  .fridge:not(.diving):hover .doorTop{transform:rotateY(27deg)}
+  .fridge:not(.diving):hover .doorBottom{transform:rotateY(15deg)}
   .interior{
     position:absolute;inset:14px;border-radius:18px;background:linear-gradient(180deg,#11161f,#0b0f16);
     display:flex;flex-direction:column;gap:10px;padding:16px;z-index:1;
   }
-  .shelf{flex:1;border-radius:10px;background:rgba(255,255,255,.04);
-    border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;
-    gap:10px;font-size:24px;filter:saturate(1.1)}
+  .shelf{flex:1;border-radius:5px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.015));
+    border-top:1px solid rgba(255,255,255,.12);box-shadow:0 1px 0 rgba(0,0,0,.35)}
   .light{position:absolute;inset:14px;border-radius:18px;background:radial-gradient(circle at 50% 0%,rgba(94,227,194,.35),transparent 60%);opacity:0;transition:opacity .8s ease;z-index:2;pointer-events:none}
-  .fridge:not(.diving):hover .light{opacity:.55}
+  .fridge:not(.diving):hover .light{opacity:.85}
   .fridge.diving .light{opacity:1}
 
   /* hover-reveal "open" hint floating on the door */
@@ -97,10 +96,13 @@
   .fridge:hover .openHint{opacity:1;transform:translate(-50%,-50%) scale(1) translateY(0)}
   .fridge.diving .openHint{opacity:0;transform:translate(-50%,-50%) scale(.7);transition:opacity .2s ease}
   .openHint .pill{
-    background:linear-gradient(90deg,#16e0b8,#19c6d6);color:#04221c;font-weight:800;font-size:15px;
-    border:none;padding:13px 22px;border-radius:14px;white-space:nowrap;letter-spacing:.3px;
-    box-shadow:0 14px 34px rgba(0,0,0,.35), 0 0 26px rgba(22,224,184,.5);
+    background:linear-gradient(135deg,#22e6c0,#1fb6d8);color:#03251f;font-weight:800;font-size:14.5px;
+    border:1px solid rgba(255,255,255,.4);padding:12px 24px;border-radius:999px;white-space:nowrap;letter-spacing:.4px;
+    box-shadow:0 12px 30px rgba(0,0,0,.42), 0 0 28px rgba(34,230,192,.45), inset 0 1px 0 rgba(255,255,255,.55);
+    animation:pillPulse 2.1s ease-in-out infinite;
   }
+  @keyframes pillPulse{0%,100%{box-shadow:0 12px 30px rgba(0,0,0,.42), 0 0 24px rgba(34,230,192,.4), inset 0 1px 0 rgba(255,255,255,.55)}
+    50%{box-shadow:0 14px 36px rgba(0,0,0,.45), 0 0 44px rgba(34,230,192,.75), inset 0 1px 0 rgba(255,255,255,.55)}}
   .openHint .hintsub{margin-top:9px;font-size:11px;color:#08231d;font-weight:700;letter-spacing:.4px;text-shadow:0 1px 1px rgba(255,255,255,.5)}
   .open-caption{margin-top:26px;color:var(--muted);font-size:13px;letter-spacing:.3px;
     display:inline-flex;align-items:center;gap:8px;animation:bob 2.4s ease-in-out infinite}
@@ -241,9 +243,9 @@
     <div class="hero">
       <div class="fridge" id="fridge">
         <div class="interior">
-          <div class="shelf">🥚 🥛 🧀</div>
-          <div class="shelf">🥦 🍅 🥕</div>
-          <div class="shelf">🍗 🐟 🍤</div>
+          <div class="shelf"></div>
+          <div class="shelf"></div>
+          <div class="shelf"></div>
         </div>
         <div class="light"></div>
         <div class="door doorTop"></div>
@@ -254,7 +256,7 @@
           <div class="hintsub">click to start cooking</div>
         </div>
       </div>
-      <div class="open-caption" id="openCaption"><span class="finger">👆</span> <span class="capH">Hover the fridge, then click to open</span><span class="capT">Tap the fridge to open</span></div>
+      <div class="open-caption" id="openCaption"><span class="finger">👆</span> <span class="capH">Hover the fridge, then click to open</span><span class="capT">Tap or swipe the fridge to open</span></div>
       <p class="tag" style="margin-top:18px;max-width:460px">A content-based recommender scores 1,000 real Food.com recipes against the ingredients you own and the budget you set, then ranks the best matches.</p>
     </div>
   </section>
@@ -467,9 +469,33 @@ function diveIntoFridge(){
 }
 fridgeEl.onclick=diveIntoFridge;
 
+// swipe-to-open (touch): drag the fridge like pulling the door, release to enter
+(function(){
+  let sx=0,sy=0,active=false;
+  const MAXDEG=72, OPEN_AT=55;
+  const doors=()=>fridgeEl.querySelectorAll(".door");
+  function crack(deg){doors().forEach((d,i)=>{d.style.transition="none";d.style.transform="rotateY("+(deg*(i===0?1:0.72))+"deg)";});}
+  function snapClosed(){doors().forEach(d=>{d.style.transition="";d.style.transform="";});}
+  fridgeEl.addEventListener("touchstart",e=>{
+    if(fridgeEl.classList.contains("diving"))return;
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;active=true;
+  },{passive:true});
+  fridgeEl.addEventListener("touchmove",e=>{
+    if(!active)return;
+    const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
+    if(Math.abs(dx)<Math.abs(dy)){active=false;snapClosed();return;}
+    crack(Math.min(MAXDEG,Math.abs(dx)*0.6));
+  },{passive:true});
+  fridgeEl.addEventListener("touchend",e=>{
+    if(!active)return;active=false;
+    const dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)>OPEN_AT){ diveIntoFridge(); } else { snapClosed(); }
+  });
+})();
+
 // navigation
 function goto(step){
-  if(step===0){ fridgeEl.classList.remove("diving"); heroEl.classList.remove("diving"); }
+  if(step===0){ fridgeEl.classList.remove("diving"); heroEl.classList.remove("diving"); fridgeEl.querySelectorAll(".door").forEach(d=>{d.style.transition="";d.style.transform="";}); }
   document.querySelectorAll(".screen").forEach((s,i)=>s.classList.toggle("show",i===step));
   document.querySelectorAll(".steps .s").forEach((s,i)=>{
     s.classList.toggle("active",i===step);
