@@ -524,13 +524,11 @@ function loadPhotos(el,r){
   const box=el.querySelector(".photos");
   if(!box||box.dataset.loaded==="1")return;
   box.dataset.loaded="1";
+  // Preview only shows REAL YouTube video thumbnails, and only when a key is set.
+  if(!(typeof YT_API_KEY!=="undefined" && YT_API_KEY)){box.style.display="none";return;}
   box.innerHTML='<div class="phlabel">Photo preview</div><div class="phstrip"></div><div class="phnote"></div>';
   const strip=box.querySelector(".phstrip");
   const note=box.querySelector(".phnote");
-  const AREA={Italian:"Italian",Japanese:"Japanese",Chinese:"Chinese",Mexican:"Mexican",American:"American",Indian:"Indian",Thai:"Thai",French:"French"};
-  const stop=new Set(["the","and","with","for","in","of","to","your","best","easy","quick","homemade","style","mom","moms","grandmas","kittencal","favorite","perfect","ultimate","real","simple","amazing","world","good","great","yummy","delicious","tasty","crunchy","creamy","classic","special","super","crumb","topped","crispy","fluffy","make","ahead"]);
-  const words=(r.name||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(w=>w.length>2&&!stop.has(w));
-  const ytSearch="https://www.youtube.com/results?search_query="+encodeURIComponent(r.name+" recipe");
   const j=async u=>{try{const x=await fetch(u);if(!x.ok)return null;return await x.json();}catch(e){return null;}};
   function tile(src,href,cap,cls){
     const a=document.createElement("a");a.href=href;a.target="_blank";a.rel="noopener";a.className="ph"+(cls?" "+cls:"");
@@ -541,31 +539,12 @@ function loadPhotos(el,r){
     strip.appendChild(a);
   }
   (async()=>{
-    // 1) LIVE YouTube thumbnails (real) when an API key is configured
-    if(typeof YT_API_KEY!=="undefined" && YT_API_KEY){
-      const d=await j("https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=3&q="+encodeURIComponent(r.name+" recipe")+"&key="+YT_API_KEY);
-      const items=(d&&d.items)||[];
-      if(items.length){
-        note.textContent="Live from YouTube — tap a thumbnail to watch.";
-        items.forEach(it=>{const id=it.id&&it.id.videoId;const tn=it.snippet&&it.snippet.thumbnails&&(it.snippet.thumbnails.medium||it.snippet.thumbnails.default);
-          if(id&&tn)tile(tn.url,"https://www.youtube.com/watch?v="+id,(it.snippet.title||r.name),"match");});
-        if(strip.children.length)return;
-      }
-    }
-    // 2) Fallback: real dish photos (TheMealDB -> cuisine -> Flickr), tap opens Pinterest
-    note.textContent="Real dish photos — tap to search this recipe on YouTube.";
-    const photos=[],seen=new Set();
-    const push=(t,n,sp)=>{if(t&&!seen.has(t)){seen.add(t);photos.push({t:t,n:n,s:sp});}};
-    const TM="https://www.themealdb.com/api/json/v1/1/";
-    const nameQ=words.slice(0,3).join(" ")||r.name;
-    const d1=await j(TM+"search.php?s="+encodeURIComponent(nameQ));
-    if(d1&&d1.meals)d1.meals.slice(0,3).forEach(m=>push(m.strMealThumb,m.strMeal,true));
-    if(photos.length<3){const area=AREA[r.cuisine];
-      if(area){const d2=await j(TM+"filter.php?a="+encodeURIComponent(area));const meals=(d2&&d2.meals)||[];const off=meals.length?(r.id%meals.length):0;
-        for(let i=0;i<meals.length&&photos.length<3;i++){const m=meals[(i+off)%meals.length];push(m.strMealThumb,m.strMeal,false);}}}
-    if(photos.length===0){const cui=(r.cuisine&&r.cuisine!=="Other")?r.cuisine.toLowerCase():"";const kw=[cui].concat(words.slice(0,2)).filter(Boolean).join(",")||"food";
-      for(let i=0;i<3;i++)push("https://loremflickr.com/320/200/"+kw+",food?lock="+((r.id%97)+i*7+1),r.name,false);}
-    photos.slice(0,3).forEach(p=>tile(p.t,ytSearch,p.n,p.s?"match":""));
+    const d=await j("https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=3&q="+encodeURIComponent(r.name+" recipe")+"&key="+YT_API_KEY);
+    const items=(d&&d.items)||[];
+    if(!items.length){box.style.display="none";return;}
+    note.textContent="Live from YouTube — tap a thumbnail to watch.";
+    items.forEach(it=>{const id=it.id&&it.id.videoId;const tn=it.snippet&&it.snippet.thumbnails&&(it.snippet.thumbnails.medium||it.snippet.thumbnails.default);
+      if(id&&tn)tile(tn.url,"https://www.youtube.com/watch?v="+id,(it.snippet.title||r.name),"match");});
     if(!strip.children.length)box.style.display="none";
   })();
 }
